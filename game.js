@@ -3,20 +3,23 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+const canvasWidth = canvas.width;
+const canvasHeight = canvas.height;
+
 const playerWidth = 80;
 const playerHeight = 80; 
-let playerX = canvas.width / 2 - playerWidth / 2;
-let playerY = canvas.height - playerHeight - 20;
+let playerX = canvasWidth / 2 - playerWidth / 2;
+let playerY = canvasHeight - playerHeight - 20;
 const playerSpeed = 7;
 
-const bulletWidth = 30;
-const bulletHeight = 60;
+const bulletWidth = 30; // Increased width for visibility
+const bulletHeight = 60; // Increased height for visibility
 const bulletSpeed = 10;
 let bullets = [];
 
 const invaderRowCount = 5;
 const invaderColumnCount = 11;
-const invaderWidth = 60;
+const invaderWidth = 60; 
 const invaderHeight = 60;
 const invaderPadding = 20;
 const invaderOffsetTop = 50;
@@ -33,27 +36,16 @@ let downPressed = false;
 let spacePressed = false;
 
 const playerImage = new Image();
+playerImage.src = 'player.png';  // Ensure you have an image named 'player.png'
+
 const bulletImage = new Image();
+bulletImage.src = 'bullet.png';  // Ensure you have an image named 'bullet.png'
+
 const invaderImage = new Image();
+invaderImage.src = 'invader.png';  // Ensure you have an image named 'invader.png'
+
 const explosionImage = new Image();
-let imagesLoaded = 0;
-
-playerImage.src = 'player.png';
-bulletImage.src = 'bullet.png';
-invaderImage.src = 'invader.png';
-explosionImage.src = 'explosion.png';
-
-const images = [playerImage, bulletImage, invaderImage, explosionImage];
-
-images.forEach(img => {
-    img.onload = () => {
-        imagesLoaded++;
-        if (imagesLoaded === images.length) {
-            createInvaders();
-            draw();
-        }
-    };
-});
+explosionImage.src = 'explosion.png';  // Ensure you have an image named 'explosion.png'
 
 document.addEventListener('keydown', keyDownHandler);
 document.addEventListener('keyup', keyUpHandler);
@@ -186,7 +178,7 @@ function drawInvaders() {
 }
 
 function movePlayer() {
-    if (rightPressed && playerX < canvas.width - playerWidth) {
+    if (rightPressed && playerX < canvasWidth - playerWidth) {
         playerX += playerSpeed;
     }
     if (leftPressed && playerX > 0) {
@@ -195,7 +187,7 @@ function movePlayer() {
     if (upPressed && playerY > 0) {
         playerY -= playerSpeed;
     }
-    if (downPressed && playerY < canvas.height - playerHeight) {
+    if (downPressed && playerY < canvasHeight - playerHeight) {
         playerY += playerSpeed;
     }
 }
@@ -228,7 +220,7 @@ function createInvaders() {
 
 function updateInvaderPositions() {
     let rightEdge = 0;
-    let leftEdge = canvas.width;
+    let leftEdge = canvasWidth;
     for (let c = 0; c < invaderColumnCount; c++) {
         for (let r = 0; r < invaderRowCount; r++) {
             let invader = invaders[c][r];
@@ -239,7 +231,7 @@ function updateInvaderPositions() {
             }
         }
     }
-    if (rightEdge > canvas.width - invaderOffsetLeft || leftEdge < invaderOffsetLeft) {
+    if (rightEdge > canvasWidth - invaderOffsetLeft || leftEdge < invaderOffsetLeft) {
         invaderDirection *= -1;
         for (let c = 0; c < invaderColumnCount; c++) {
             for (let r = 0; r < invaderRowCount; r++) {
@@ -255,8 +247,8 @@ function updateInvaderPositions() {
 
 function checkCollisions() {
     bullets.forEach((bullet, bulletIndex) => {
-        invaders.forEach((column, columnIndex) => {
-            column.forEach((invader, invaderIndex) => {
+        invaders.forEach((column) => {
+            column.forEach((invader) => {
                 if (invader.status === 1 && bullet.status === 1) {
                     if (bullet.x > invader.x && bullet.x < invader.x + invaderWidth &&
                         bullet.y > invader.y && bullet.y < invader.y + invaderHeight) {
@@ -296,7 +288,7 @@ function gameOver() {
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     drawPlayer();
     bullets.forEach(drawBullet);
     drawInvaders();
