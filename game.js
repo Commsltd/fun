@@ -5,6 +5,7 @@ function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     playerY = canvas.height - playerHeight - 20; // Adjust player Y position on resize
+    console.log(`Canvas resized to: ${canvas.width}x${canvas.height}`);
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -96,6 +97,11 @@ function keyUpHandler(e) {
         shootBullet();
     }
 }
+
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
 
 function handleTouchStart(event) {
     const touch = event.touches[0];
@@ -195,6 +201,7 @@ function movePlayer(deltaTime) {
 
 function shootBullet() {
     bullets.push({ x: playerX + playerWidth / 2 - bulletWidth / 2, y: playerY, status: 1 });
+    console.log('Bullet shot:', bullets[bullets.length - 1]);
 }
 
 function moveBullets(deltaTime) {
@@ -217,6 +224,7 @@ function createInvaders() {
             invaders[c][r] = { x: invaderX, y: invaderY, status: 1 };
         }
     }
+    console.log('Invaders created:', invaders);
 }
 
 function updateInvaderPositions(deltaTime) {
@@ -259,6 +267,7 @@ function checkCollisions() {
                             invader.status = 0;  // Remove invader after explosion
                             bullets.splice(bulletIndex, 1);
                         }, 500);  // Explosion duration
+                        console.log('Invader hit:', invader);
                     }
                 }
             });
