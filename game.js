@@ -3,30 +3,27 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const canvasWidth = canvas.width;
-const canvasHeight = canvas.height;
-
 const playerWidth = 80;
 const playerHeight = 80; 
-let playerX = canvasWidth / 2 - playerWidth / 2;
-let playerY = canvasHeight - playerHeight - 20;
+let playerX = canvas.width / 2 - playerWidth / 2;
+let playerY = canvas.height - playerHeight - 20;
 const playerSpeed = 7;
 
-const bulletWidth = 30; // Increased width for visibility
-const bulletHeight = 60; // Increased height for visibility
+const bulletWidth = 30;
+const bulletHeight = 60;
 const bulletSpeed = 10;
 let bullets = [];
 
 const invaderRowCount = 5;
 const invaderColumnCount = 11;
-const invaderWidth = 60; 
+const invaderWidth = 60;
 const invaderHeight = 60;
 const invaderPadding = 20;
 const invaderOffsetTop = 50;
 const invaderOffsetLeft = 50;
 let invaders = [];
 let invaderDirection = 1;
-let invaderSpeed = 0.5; // Adjusted speed for invaders
+const invaderSpeed = 0.5; // Adjusted speed for invaders
 const invaderDescentSpeed = 1; // Slower descent
 
 let rightPressed = false;
@@ -46,10 +43,12 @@ bulletImage.src = 'bullet.png';
 invaderImage.src = 'invader.png';
 explosionImage.src = 'explosion.png';
 
-[playerImage, bulletImage, invaderImage, explosionImage].forEach(img => {
+const images = [playerImage, bulletImage, invaderImage, explosionImage];
+
+images.forEach(img => {
     img.onload = () => {
         imagesLoaded++;
-        if (imagesLoaded === 4) {
+        if (imagesLoaded === images.length) {
             createInvaders();
             draw();
         }
@@ -187,7 +186,7 @@ function drawInvaders() {
 }
 
 function movePlayer() {
-    if (rightPressed && playerX < canvasWidth - playerWidth) {
+    if (rightPressed && playerX < canvas.width - playerWidth) {
         playerX += playerSpeed;
     }
     if (leftPressed && playerX > 0) {
@@ -196,7 +195,7 @@ function movePlayer() {
     if (upPressed && playerY > 0) {
         playerY -= playerSpeed;
     }
-    if (downPressed && playerY < canvasHeight - playerHeight) {
+    if (downPressed && playerY < canvas.height - playerHeight) {
         playerY += playerSpeed;
     }
 }
@@ -229,7 +228,7 @@ function createInvaders() {
 
 function updateInvaderPositions() {
     let rightEdge = 0;
-    let leftEdge = canvasWidth;
+    let leftEdge = canvas.width;
     for (let c = 0; c < invaderColumnCount; c++) {
         for (let r = 0; r < invaderRowCount; r++) {
             let invader = invaders[c][r];
@@ -240,7 +239,7 @@ function updateInvaderPositions() {
             }
         }
     }
-    if (rightEdge > canvasWidth - invaderOffsetLeft || leftEdge < invaderOffsetLeft) {
+    if (rightEdge > canvas.width - invaderOffsetLeft || leftEdge < invaderOffsetLeft) {
         invaderDirection *= -1;
         for (let c = 0; c < invaderColumnCount; c++) {
             for (let r = 0; r < invaderRowCount; r++) {
@@ -297,7 +296,7 @@ function gameOver() {
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawPlayer();
     bullets.forEach(drawBullet);
     drawInvaders();
