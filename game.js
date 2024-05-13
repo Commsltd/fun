@@ -4,33 +4,34 @@ const ctx = canvas.getContext('2d');
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    playerY = canvas.height - playerHeight - 20; // Adjust player Y position on resize
 }
 
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 const playerWidth = 80;
-const playerHeight = 80; 
+const playerHeight = 80;
 let playerX = canvas.width / 2 - playerWidth / 2;
 let playerY = canvas.height - playerHeight - 20;
 const playerSpeed = 7;
 
-const bulletWidth = 30; // Increased width for visibility
-const bulletHeight = 60; // Increased height for visibility
+const bulletWidth = 30;
+const bulletHeight = 60;
 const bulletSpeed = 10;
 let bullets = [];
 
 const invaderRowCount = 5;
 const invaderColumnCount = 11;
-const invaderWidth = 60; 
+const invaderWidth = 60;
 const invaderHeight = 60;
 const invaderPadding = 20;
 const invaderOffsetTop = 50;
 const invaderOffsetLeft = 50;
 let invaders = [];
 let invaderDirection = 1;
-const invaderSpeed = 1;
-const invaderDescentSpeed = 5; // Slower descent
+const baseInvaderSpeed = 1; // Base speed for invaders
+const invaderDescentSpeed = 5;
 
 let rightPressed = false;
 let leftPressed = false;
@@ -39,16 +40,16 @@ let downPressed = false;
 let spacePressed = false;
 
 const playerImage = new Image();
-playerImage.src = 'player.png';  // Ensure you have an image named 'player.png'
+playerImage.src = 'player.png';
 
 const bulletImage = new Image();
-bulletImage.src = 'bullet.png';  // Ensure you have an image named 'bullet.png'
+bulletImage.src = 'bullet.png';
 
 const invaderImage = new Image();
-invaderImage.src = 'invader.png';  // Ensure you have an image named 'invader.png'
+invaderImage.src = 'invader.png';
 
 const explosionImage = new Image();
-explosionImage.src = 'explosion.png';  // Ensure you have an image named 'explosion.png'
+explosionImage.src = 'explosion.png';
 
 document.addEventListener('keydown', keyDownHandler);
 document.addEventListener('keyup', keyUpHandler);
@@ -56,6 +57,8 @@ document.addEventListener('keyup', keyUpHandler);
 canvas.addEventListener('touchstart', handleTouchStart, false);
 canvas.addEventListener('touchmove', handleTouchMove, false);
 canvas.addEventListener('touchend', handleTouchEnd, false);
+
+let lastFrameTime = performance.now();
 
 function keyDownHandler(e) {
     if (e.key === 'Right' || e.key === 'ArrowRight') {
@@ -175,18 +178,18 @@ function drawInvaders() {
     }
 }
 
-function movePlayer() {
+function movePlayer(deltaTime) {
     if (rightPressed && playerX < canvas.width - playerWidth) {
-        playerX += playerSpeed;
+        playerX += playerSpeed * deltaTime / 16;
     }
     if (leftPressed && playerX > 0) {
-        playerX -= playerSpeed;
+        playerX -= playerSpeed * deltaTime / 16;
     }
     if (upPressed && playerY > 0) {
-        playerY -= playerSpeed;
+        playerY -= playerSpeed * deltaTime / 16;
     }
     if (downPressed && playerY < canvas.height - playerHeight) {
-        playerY += playerSpeed;
+        playerY += playerSpeed * deltaTime / 16;
     }
 }
 
@@ -194,10 +197,10 @@ function shootBullet() {
     bullets.push({ x: playerX + playerWidth / 2 - bulletWidth / 2, y: playerY, status: 1 });
 }
 
-function moveBullets() {
+function moveBullets(deltaTime) {
     bullets.forEach((bullet, index) => {
         if (bullet.status === 1) {
-            bullet.y -= bulletSpeed;
+            bullet.y -= bulletSpeed * deltaTime / 16;
             if (bullet.y < 0) {
                 bullets.splice(index, 1);
             }
@@ -216,14 +219,14 @@ function createInvaders() {
     }
 }
 
-function updateInvaderPositions() {
+function updateInvaderPositions(deltaTime) {
     let rightEdge = 0;
     let leftEdge = canvas.width;
     for (let c = 0; c < invaderColumnCount; c++) {
         for (let r = 0; r < invaderRowCount; r++) {
             let invader = invaders[c][r];
             if (invader.status === 1) {
-                invader.x += invaderDirection * invaderSpeed;
+                invader.x += invaderDirection * baseInvaderSpeed * deltaTime / 16;
                 rightEdge = Math.max(rightEdge, invader.x + invaderWidth);
                 leftEdge = Math.min(leftEdge, invader.x);
             }
@@ -234,7 +237,7 @@ function updateInvaderPositions() {
         for (let c = 0; c < invaderColumnCount; c++) {
             for (let r = 0; r < invaderRowCount; r++) {
                 let invader = invaders[c][r];
-                invader.y += invaderDescentSpeed;
+                invader.y += invaderDescentSpeed * deltaTime / 16;
                 if (invader.y + invaderHeight >= playerY && invader.status === 1) {
                     gameOver();
                 }
@@ -286,13 +289,17 @@ function gameOver() {
 }
 
 function draw() {
+    const currentFrameTime = performance.now();
+    const deltaTime = currentFrameTime - lastFrameTime;
+    lastFrameTime = currentFrameTime;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawPlayer();
     bullets.forEach(drawBullet);
     drawInvaders();
-    movePlayer();
-    moveBullets();
-    updateInvaderPositions();
+    movePlayer(deltaTime);
+    moveBullets(deltaTime);
+    updateInvaderPositions(deltaTime);
     checkCollisions();
     checkPlayerInvaderCollision();
     requestAnimationFrame(draw);
