@@ -36,16 +36,25 @@ let downPressed = false;
 let spacePressed = false;
 
 const playerImage = new Image();
-playerImage.src = 'player.png';  // Ensure you have an image named 'player.png'
-
 const bulletImage = new Image();
-bulletImage.src = 'bullet.png';  // Ensure you have an image named 'bullet.png'
-
 const invaderImage = new Image();
-invaderImage.src = 'invader.png';  // Ensure you have an image named 'invader.png'
-
 const explosionImage = new Image();
-explosionImage.src = 'explosion.png';  // Ensure you have an image named 'explosion.png'
+let imagesLoaded = 0;
+
+playerImage.src = 'player.png';
+bulletImage.src = 'bullet.png';
+invaderImage.src = 'invader.png';
+explosionImage.src = 'explosion.png';
+
+[playerImage, bulletImage, invaderImage, explosionImage].forEach(img => {
+    img.onload = () => {
+        imagesLoaded++;
+        if (imagesLoaded === 4) {
+            createInvaders();
+            draw();
+        }
+    };
+});
 
 document.addEventListener('keydown', keyDownHandler);
 document.addEventListener('keyup', keyUpHandler);
