@@ -1,15 +1,18 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
 
-const canvasWidth = canvas.width;
-const canvasHeight = canvas.height;
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
 const playerWidth = 80;
 const playerHeight = 80; 
-let playerX = canvasWidth / 2 - playerWidth / 2;
-let playerY = canvasHeight - playerHeight - 20;
+let playerX = canvas.width / 2 - playerWidth / 2;
+let playerY = canvas.height - playerHeight - 20;
 const playerSpeed = 7;
 
 const bulletWidth = 30; // Increased width for visibility
@@ -50,6 +53,10 @@ explosionImage.src = 'explosion.png';  // Ensure you have an image named 'explos
 document.addEventListener('keydown', keyDownHandler);
 document.addEventListener('keyup', keyUpHandler);
 
+canvas.addEventListener('touchstart', handleTouchStart, false);
+canvas.addEventListener('touchmove', handleTouchMove, false);
+canvas.addEventListener('touchend', handleTouchEnd, false);
+
 function keyDownHandler(e) {
     if (e.key === 'Right' || e.key === 'ArrowRight') {
         rightPressed = true;
@@ -87,6 +94,58 @@ function keyUpHandler(e) {
     }
 }
 
+function handleTouchStart(event) {
+    const touch = event.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    touchEndX = touchStartX;
+    touchEndY = touchStartY;
+}
+
+function handleTouchMove(event) {
+    const touch = event.touches[0];
+    touchEndX = touch.clientX;
+    touchEndY = touch.clientY;
+}
+
+function handleTouchEnd() {
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) {
+            // Swipe right
+            rightPressed = true;
+            leftPressed = false;
+        } else {
+            // Swipe left
+            leftPressed = true;
+            rightPressed = false;
+        }
+    } else {
+        if (dy > 0) {
+            // Swipe down
+            downPressed = true;
+            upPressed = false;
+        } else {
+            // Swipe up
+            upPressed = true;
+            downPressed = false;
+        }
+    }
+    setTimeout(() => {
+        rightPressed = false;
+        leftPressed = false;
+        upPressed = false;
+        downPressed = false;
+    }, 100); // Reset after 100ms
+
+    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) {
+        // Tap detected
+        shootBullet();
+    }
+}
+
 function drawPlayer() {
     ctx.drawImage(playerImage, playerX, playerY, playerWidth, playerHeight);
 }
@@ -117,7 +176,7 @@ function drawInvaders() {
 }
 
 function movePlayer() {
-    if (rightPressed && playerX < canvasWidth - playerWidth) {
+    if (rightPressed && playerX < canvas.width - playerWidth) {
         playerX += playerSpeed;
     }
     if (leftPressed && playerX > 0) {
@@ -126,7 +185,7 @@ function movePlayer() {
     if (upPressed && playerY > 0) {
         playerY -= playerSpeed;
     }
-    if (downPressed && playerY < canvasHeight - playerHeight) {
+    if (downPressed && playerY < canvas.height - playerHeight) {
         playerY += playerSpeed;
     }
 }
@@ -159,7 +218,7 @@ function createInvaders() {
 
 function updateInvaderPositions() {
     let rightEdge = 0;
-    let leftEdge = canvasWidth;
+    let leftEdge = canvas.width;
     for (let c = 0; c < invaderColumnCount; c++) {
         for (let r = 0; r < invaderRowCount; r++) {
             let invader = invaders[c][r];
@@ -170,7 +229,7 @@ function updateInvaderPositions() {
             }
         }
     }
-    if (rightEdge > canvasWidth - invaderOffsetLeft || leftEdge < invaderOffsetLeft) {
+    if (rightEdge > canvas.width - invaderOffsetLeft || leftEdge < invaderOffsetLeft) {
         invaderDirection *= -1;
         for (let c = 0; c < invaderColumnCount; c++) {
             for (let r = 0; r < invaderRowCount; r++) {
@@ -227,7 +286,7 @@ function gameOver() {
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawPlayer();
     bullets.forEach(drawBullet);
     drawInvaders();
