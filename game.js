@@ -4,6 +4,7 @@ const ctx = canvas.getContext('2d');
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    playerY = canvas.height - playerHeight - 20; // Adjust player Y position on resize
 }
 
 resizeCanvas();
@@ -18,13 +19,13 @@ const playerSpeed = 7;
 const playerImage = new Image();
 playerImage.src = 'player.png';
 
-document.addEventListener('keydown', keyDownHandler);
-document.addEventListener('keyup', keyUpHandler);
-
 let rightPressed = false;
 let leftPressed = false;
 let upPressed = false;
 let downPressed = false;
+
+document.addEventListener('keydown', keyDownHandler);
+document.addEventListener('keyup', keyUpHandler);
 
 function keyDownHandler(e) {
     if (e.key === 'Right' || e.key === 'ArrowRight') {
@@ -72,11 +73,11 @@ function movePlayer() {
 }
 
 function drawPlayer() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(playerImage, playerX, playerY, playerWidth, playerHeight);
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawPlayer();
     movePlayer();
     requestAnimationFrame(draw);
