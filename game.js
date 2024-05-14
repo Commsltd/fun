@@ -26,8 +26,8 @@ const invaderOffsetTop = 50;
 const invaderOffsetLeft = 50;
 let invaders = [];
 let invaderDirection = 1;
-const invaderSpeed = 1;
-const invaderDescentSpeed = 5; // Slower descent
+let invaderSpeed = 0.5; // Adjusted speed for invaders
+let invaderDescentSpeed = 1; // Slower descent
 
 let rightPressed = false;
 let leftPressed = false;
@@ -49,6 +49,10 @@ explosionImage.src = 'explosion.png';  // Ensure you have an image named 'explos
 
 document.addEventListener('keydown', keyDownHandler);
 document.addEventListener('keyup', keyUpHandler);
+
+canvas.addEventListener('touchstart', handleTouchStart, false);
+canvas.addEventListener('touchmove', handleTouchMove, false);
+canvas.addEventListener('touchend', handleTouchEnd, false);
 
 function keyDownHandler(e) {
     if (e.key === 'Right' || e.key === 'ArrowRight') {
@@ -87,6 +91,63 @@ function keyUpHandler(e) {
     }
 }
 
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+
+function handleTouchStart(event) {
+    const touch = event.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    touchEndX = touchStartX;
+    touchEndY = touchStartY;
+}
+
+function handleTouchMove(event) {
+    const touch = event.touches[0];
+    touchEndX = touch.clientX;
+    touchEndY = touch.clientY;
+}
+
+function handleTouchEnd() {
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) {
+            // Swipe right
+            rightPressed = true;
+            leftPressed = false;
+        } else {
+            // Swipe left
+            leftPressed = true;
+            rightPressed = false;
+        }
+    } else {
+        if (dy > 0) {
+            // Swipe down
+            downPressed = true;
+            upPressed = false;
+        } else {
+            // Swipe up
+            upPressed = true;
+            downPressed = false;
+        }
+    }
+    setTimeout(() => {
+        rightPressed = false;
+        leftPressed = false;
+        upPressed = false;
+        downPressed = false;
+    }, 100); // Reset after 100ms
+
+    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) {
+        // Tap detected
+        shootBullet();
+    }
+}
+
 function drawPlayer() {
     ctx.drawImage(playerImage, playerX, playerY, playerWidth, playerHeight);
 }
@@ -116,18 +177,18 @@ function drawInvaders() {
     }
 }
 
-function movePlayer() {
+function movePlayer(deltaTime) {
     if (rightPressed && playerX < canvasWidth - playerWidth) {
-        playerX += playerSpeed;
+        playerX += playerSpeed * deltaTime / 16;
     }
     if (leftPressed && playerX > 0) {
-        playerX -= playerSpeed;
+        playerX -= playerSpeed * deltaTime / 16;
     }
     if (upPressed && playerY > 0) {
-        playerY -= playerSpeed;
+        playerY -= playerSpeed * deltaTime / 16;
     }
     if (downPressed && playerY < canvasHeight - playerHeight) {
-        playerY += playerSpeed;
+        playerY += playerSpeed * deltaTime / 16;
     }
 }
 
@@ -135,10 +196,10 @@ function shootBullet() {
     bullets.push({ x: playerX + playerWidth / 2 - bulletWidth / 2, y: playerY, status: 1 });
 }
 
-function moveBullets() {
+function moveBullets(deltaTime) {
     bullets.forEach((bullet, index) => {
         if (bullet.status === 1) {
-            bullet.y -= bulletSpeed;
+            bullet.y -= bulletSpeed * deltaTime / 16;
             if (bullet.y < 0) {
                 bullets.splice(index, 1);
             }
@@ -157,14 +218,14 @@ function createInvaders() {
     }
 }
 
-function updateInvaderPositions() {
+function updateInvaderPositions(deltaTime) {
     let rightEdge = 0;
     let leftEdge = canvasWidth;
     for (let c = 0; c < invaderColumnCount; c++) {
         for (let r = 0; r < invaderRowCount; r++) {
             let invader = invaders[c][r];
             if (invader.status === 1) {
-                invader.x += invaderDirection * invaderSpeed;
+                invader.x += invaderDirection * invaderSpeed * deltaTime / 16;
                 rightEdge = Math.max(rightEdge, invader.x + invaderWidth);
                 leftEdge = Math.min(leftEdge, invader.x);
             }
@@ -175,7 +236,7 @@ function updateInvaderPositions() {
         for (let c = 0; c < invaderColumnCount; c++) {
             for (let r = 0; r < invaderRowCount; r++) {
                 let invader = invaders[c][r];
-                invader.y += invaderDescentSpeed;
+                invader.y += invaderDescentSpeed * deltaTime / 16;
                 if (invader.y + invaderHeight >= playerY && invader.status === 1) {
                     gameOver();
                 }
@@ -186,8 +247,8 @@ function updateInvaderPositions() {
 
 function checkCollisions() {
     bullets.forEach((bullet, bulletIndex) => {
-        invaders.forEach((column, columnIndex) => {
-            column.forEach((invader, invaderIndex) => {
+        invaders.forEach((column) => {
+            column.forEach((invader) => {
                 if (invader.status === 1 && bullet.status === 1) {
                     if (bullet.x > invader.x && bullet.x < invader.x + invaderWidth &&
                         bullet.y > invader.y && bullet.y < invader.y + invaderHeight) {
@@ -226,14 +287,20 @@ function gameOver() {
     }, 2000);
 }
 
+let lastFrameTime = performance.now();
+
 function draw() {
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    const currentFrameTime = performance.now();
+    const deltaTime = currentFrameTime - lastFrameTime;
+    lastFrameTime = currentFrameTime;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawPlayer();
     bullets.forEach(drawBullet);
     drawInvaders();
-    movePlayer();
-    moveBullets();
-    updateInvaderPositions();
+    movePlayer(deltaTime);
+    moveBullets(deltaTime);
+    updateInvaderPositions(deltaTime);
     checkCollisions();
     checkPlayerInvaderCollision();
     requestAnimationFrame(draw);
