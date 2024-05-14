@@ -1,19 +1,24 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+resizeCanvas();
 
-const canvasWidth = canvas.width;
-const canvasHeight = canvas.height;
+window.addEventListener('resize', resizeCanvas);
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    playerY = canvas.height - playerHeight - 20; // Adjust player Y position on resize
+    console.log(`Canvas resized to: ${canvas.width}x${canvas.height}`);
+}
 
 const playerWidth = 80;
 const playerHeight = 80; 
-let playerX = canvasWidth / 2 - playerWidth / 2;
-let playerY = canvasHeight - playerHeight - 20;
+let playerX = canvas.width / 2 - playerWidth / 2;
+let playerY = canvas.height - playerHeight - 20;
 const playerSpeed = 7;
 
-const bulletWidth = 30; // Increased width for visibility
-const bulletHeight = 60; // Increased height for visibility
+const bulletWidth = 30; 
+const bulletHeight = 60; 
 const bulletSpeed = 10;
 let bullets = [];
 
@@ -26,8 +31,8 @@ const invaderOffsetTop = 50;
 const invaderOffsetLeft = 50;
 let invaders = [];
 let invaderDirection = 1;
-let invaderSpeed = 0.5; // Adjusted speed for invaders
-let invaderDescentSpeed = 1; // Slower descent
+const invaderSpeed = 1; // Adjusted speed for invaders
+const invaderDescentSpeed = 5; // Slower descent
 
 let rightPressed = false;
 let leftPressed = false;
@@ -36,16 +41,16 @@ let downPressed = false;
 let spacePressed = false;
 
 const playerImage = new Image();
-playerImage.src = 'player.png';  // Ensure you have an image named 'player.png'
+playerImage.src = 'player.png';
 
 const bulletImage = new Image();
-bulletImage.src = 'bullet.png';  // Ensure you have an image named 'bullet.png'
+bulletImage.src = 'bullet.png';
 
 const invaderImage = new Image();
-invaderImage.src = 'invader.png';  // Ensure you have an image named 'invader.png'
+invaderImage.src = 'invader.png';
 
 const explosionImage = new Image();
-explosionImage.src = 'explosion.png';  // Ensure you have an image named 'explosion.png'
+explosionImage.src = 'explosion.png';
 
 document.addEventListener('keydown', keyDownHandler);
 document.addEventListener('keyup', keyUpHandler);
@@ -116,21 +121,17 @@ function handleTouchEnd() {
 
     if (Math.abs(dx) > Math.abs(dy)) {
         if (dx > 0) {
-            // Swipe right
             rightPressed = true;
             leftPressed = false;
         } else {
-            // Swipe left
             leftPressed = true;
             rightPressed = false;
         }
     } else {
         if (dy > 0) {
-            // Swipe down
             downPressed = true;
             upPressed = false;
         } else {
-            // Swipe up
             upPressed = true;
             downPressed = false;
         }
@@ -143,7 +144,6 @@ function handleTouchEnd() {
     }, 100); // Reset after 100ms
 
     if (Math.abs(dx) < 20 && Math.abs(dy) < 20) {
-        // Tap detected
         shootBullet();
     }
 }
@@ -178,7 +178,7 @@ function drawInvaders() {
 }
 
 function movePlayer(deltaTime) {
-    if (rightPressed && playerX < canvasWidth - playerWidth) {
+    if (rightPressed && playerX < canvas.width - playerWidth) {
         playerX += playerSpeed * deltaTime / 16;
     }
     if (leftPressed && playerX > 0) {
@@ -187,7 +187,7 @@ function movePlayer(deltaTime) {
     if (upPressed && playerY > 0) {
         playerY -= playerSpeed * deltaTime / 16;
     }
-    if (downPressed && playerY < canvasHeight - playerHeight) {
+    if (downPressed && playerY < canvas.height - playerHeight) {
         playerY += playerSpeed * deltaTime / 16;
     }
 }
@@ -220,7 +220,7 @@ function createInvaders() {
 
 function updateInvaderPositions(deltaTime) {
     let rightEdge = 0;
-    let leftEdge = canvasWidth;
+    let leftEdge = canvas.width;
     for (let c = 0; c < invaderColumnCount; c++) {
         for (let r = 0; r < invaderRowCount; r++) {
             let invader = invaders[c][r];
@@ -231,7 +231,7 @@ function updateInvaderPositions(deltaTime) {
             }
         }
     }
-    if (rightEdge > canvasWidth - invaderOffsetLeft || leftEdge < invaderOffsetLeft) {
+    if (rightEdge > canvas.width - invaderOffsetLeft || leftEdge < invaderOffsetLeft) {
         invaderDirection *= -1;
         for (let c = 0; c < invaderColumnCount; c++) {
             for (let r = 0; r < invaderRowCount; r++) {
